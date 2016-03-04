@@ -42,7 +42,7 @@
             android:id="@+id/badButton"
             android:tag="1"
             android:background="#ffff2a3d"
-            android:textColor="@color/abc_background_cache_hint_selector_material_dark"
+            android:textColor="#ff000000"
             android:textSize="25sp"
             android:layout_row="1"
             android:layout_column="0"
@@ -58,7 +58,7 @@
             android:id="@+id/normalButton"
             android:tag="2"
             android:background="#fffff846"
-            android:textColor="@color/abc_background_cache_hint_selector_material_dark"
+            android:textColor="#ff000000"
             android:textSize="25sp"
             android:layout_row="1"
             android:layout_column="1"
@@ -75,7 +75,7 @@
             android:tag="3"
             android:background="#ffa3ff2a"
             android:layout_alignTop="@+id/normalButton"
-            android:textColor="@color/abc_background_cache_hint_selector_material_dark"
+            android:textColor="#ff000000"
             android:textSize="25sp"
             android:layout_row="1"
             android:layout_column="2"
@@ -84,5 +84,19 @@
             android:layout_gravity="fill"
             android:onClick="postData" />
     </GridLayout>
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/settingsButton"
+        android:layout_alignTop="@+id/HelloMessage"
+        android:layout_alignParentEnd="true"
+        android:onClick="launchSettings"
+        android:background="@android:drawable/ic_menu_preferences"
+        android:layout_toEndOf="@+id/HelloMessage"
+        android:layout_above="@+id/gridLayout"
+        android:width="5dp"
+        android:height="5dp" />
 
 </RelativeLayout>

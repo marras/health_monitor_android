@@ -1,5 +1,6 @@
 package com.example.marek.healthmonitor;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -74,6 +75,12 @@ public class MainActivity extends ActionBarActivity {
             e.printStackTrace();
         }
         Toast.makeText(getApplicationContext(), "I/O failed, fuck you!", Toast.LENGTH_LONG);
+    }
+
+    public void launchSettings (View view) {
+
+        Intent i = new Intent(getApplicationContext(), SettingsActivity.class);
+        startActivity(i);
     }
 
     @Override
