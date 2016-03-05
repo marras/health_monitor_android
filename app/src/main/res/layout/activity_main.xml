@@ -99,4 +99,14 @@
         android:width="5dp"
         android:height="5dp" />
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SET ALARMS"
+        android:id="@+id/button"
+        android:layout_alignParentBottom="true"
+        android:layout_alignStart="@+id/HelloMessage"
+        android:layout_marginBottom="89dp"
+        android:onClick="setAlarms" />
+
 </RelativeLayout>

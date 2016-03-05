@@ -1,5 +1,10 @@
 package com.example.marek.healthmonitor;
 
+import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
@@ -24,6 +29,7 @@ import org.apache.http.protocol.HTTP;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.concurrent.ExecutionException;
 
 
@@ -92,6 +98,11 @@ public class MainActivity extends ActionBarActivity {
         startActivity(i);
     }
 
+    Waker waker = new Waker();
+
+    public void setAlarms(View view) {
+        waker.SetAlarm(this, 22, 40);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
