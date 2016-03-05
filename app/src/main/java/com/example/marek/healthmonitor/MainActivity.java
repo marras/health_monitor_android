@@ -2,6 +2,7 @@ package com.example.marek.healthmonitor;
 
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -30,6 +31,9 @@ public class MainActivity extends ActionBarActivity {
     HttpClient client = new DefaultHttpClient();
     HttpPost post = new HttpPost("http://health-monit.herokuapp.com/data");
 
+    ArrayList<String> metrics = new ArrayList<String>();
+    int metricIndex = 0;
+
     public class UploadTask extends AsyncTask<String, Void, String> {
 
         private Exception exception = null;
@@ -37,7 +41,7 @@ public class MainActivity extends ActionBarActivity {
         @Override
         protected String doInBackground(String... params) {
             try {
-                String postMessage = "{\"values\": { \"kupa\": " + params[0] + "} }";
+                String postMessage = "{\"user\": \"" + params[2] + "\", \"values\": { \"" + params[0]+ "\": " + params[1] + "} }";
                 Log.i("PostData", "Post message: '"+postMessage+"'");
                 post.setHeader(HTTP.CONTENT_TYPE, "application/json; charset=UTF-8");
                 post.setEntity(new ByteArrayEntity(postMessage.getBytes("UTF8")));
@@ -66,9 +70,15 @@ public class MainActivity extends ActionBarActivity {
 
     public void postData(View view) {
         Log.i("PostData", "starting...");
+        String tag = view.getTag().toString();
+        String user = PreferenceManager.getDefaultSharedPreferences(this).getString("username", "");
+        String metric = metrics.get(metricIndex);
+
+        Log.i("Settings user:", user);
+
         UploadTask task = new UploadTask();
         try {
-            task.execute(view.getTag().toString()).get();
+            task.execute(metric, tag, user).get();
         } catch(InterruptedException e) {
             e.printStackTrace();
         } catch(ExecutionException e) {
@@ -78,15 +88,18 @@ public class MainActivity extends ActionBarActivity {
     }
 
     public void launchSettings (View view) {
-
         Intent i = new Intent(getApplicationContext(), SettingsActivity.class);
         startActivity(i);
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // GET this from internet
+        metrics.add("Head");
     }
 
 
