@@ -10,7 +10,7 @@
         android:id="@+id/HelloMessage"
         android:textSize="25sp"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_toStartOf="@+id/settingsButton" />
 
     <GridLayout
         android:layout_width="match_parent"
@@ -90,23 +90,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/settingsButton"
-        android:layout_alignTop="@+id/HelloMessage"
-        android:layout_alignParentEnd="true"
         android:onClick="launchSettings"
         android:background="@android:drawable/ic_menu_preferences"
-        android:layout_toEndOf="@+id/HelloMessage"
-        android:layout_above="@+id/gridLayout"
-        android:width="5dp"
-        android:height="5dp" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="SET ALARMS"
-        android:id="@+id/button"
-        android:layout_alignParentBottom="true"
-        android:layout_alignStart="@+id/HelloMessage"
-        android:layout_marginBottom="89dp"
-        android:onClick="setAlarms" />
+        android:layout_alignTop="@+id/HelloMessage"
+        android:layout_alignEnd="@+id/gridLayout" />
 
 </RelativeLayout>
