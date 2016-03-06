@@ -20,7 +20,7 @@ import java.util.Calendar;
 // TODO We will need BOOT_COMPLETED and WAKE_LOCK permission
 
 public class Waker extends BroadcastReceiver {
-    private void createNotification(Context context) {
+    public static void createNotification(Context context) {
         Intent intent = new Intent(context, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 1, intent, 0);
 

@@ -17,6 +17,7 @@ import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 
 
 import java.util.List;
@@ -40,7 +41,6 @@ public class SettingsActivity extends PreferenceActivity {
      * shown on tablets.
      */
     private static final boolean ALWAYS_SIMPLE_PREFS = false;
-
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
@@ -131,8 +131,7 @@ public class SettingsActivity extends PreferenceActivity {
             String stringValue = value.toString();
 
             if (preference instanceof ListPreference) {
-                // For list preferences, look up the correct display value in
-                // the preference's 'entries' list.
+                // For lists, look up the correct display value in its 'entries' list.
                 ListPreference listPreference = (ListPreference) preference;
                 int index = listPreference.findIndexOfValue(stringValue);
 
@@ -141,9 +140,17 @@ public class SettingsActivity extends PreferenceActivity {
                         index >= 0
                                 ? listPreference.getEntries()[index]
                                 : null);
+            } else if (preference instanceof TimePreference) {
+                // Time has been changed - set the alarm
+                String[] time = stringValue.split(":");
+                int hour = Integer.parseInt(time[0]);
+                int minute = Integer.parseInt(time[1]);
+
+                Waker waker = new Waker();
+                waker.SetAlarm(preference.getContext(), hour, minute);
+                preference.setSummary(stringValue);
             } else {
-                // For all other preferences, set the summary to the value's
-                // simple string representation.
+                // Other preferences - just set the summary to the value's simple string representation.
                 preference.setSummary(stringValue);
             }
             return true;
@@ -161,7 +168,6 @@ public class SettingsActivity extends PreferenceActivity {
      */
     private static void bindPreferenceSummaryToValue(Preference preference) {
         // Set the listener to watch for value changes.
-        Log.i("bindPreference", preference.toString());
         preference.setOnPreferenceChangeListener(sBindPreferenceSummaryToValueListener);
 
         // TODO this does not work for TimePreference :(
