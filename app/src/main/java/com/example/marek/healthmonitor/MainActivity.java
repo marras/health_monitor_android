@@ -12,10 +12,12 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.text.Layout;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import org.apache.http.HttpResponse;
@@ -45,6 +47,7 @@ import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends ActionBarActivity {
     ArrayList<JSONObject> metrics = new ArrayList<JSONObject>();
+    FrameLayout wifiErrorLayout;
     int metricIndex = 0;
     int userId = -1;
 
@@ -122,11 +125,15 @@ public class MainActivity extends ActionBarActivity {
                 }
 
                 Log.i("Download", "Result: '"+result+"'");
-                return result;
-            } catch (Exception ex) {
+            } catch (MalformedURLException ex) {
+                this.exception = ex;
+                return null;
+            } catch (IOException ex) {
+                wifiErrorLayout.setVisibility(View.VISIBLE);
                 this.exception = ex;
                 return null;
             }
+            return result;
         }
 
         @Override
@@ -138,6 +145,7 @@ public class MainActivity extends ActionBarActivity {
             } else {
                 try {
                     Log.i("Download SUCCESS:", result);
+                    wifiErrorLayout.setVisibility(View.INVISIBLE);
                     JSONObject jObject = new JSONObject(result);
                     userId = jObject.getInt("user");
                     JSONArray array = jObject.getJSONArray("metrics");
@@ -151,11 +159,15 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
+    private String getCurrentMetricName() throws JSONException {
+        return metrics.get(metricIndex).getString("name");
+    }
+
     public void postData(View view) {
         Log.i("PostData", "starting...");
         try {
             String tag = view.getTag().toString();
-            String metric_name = metrics.get(metricIndex).getString("name");
+            String metric_name = getCurrentMetricName();
 
             UploadTask task = new UploadTask();
 
@@ -169,10 +181,11 @@ public class MainActivity extends ActionBarActivity {
             data.put("values", valuesData);
 
             task.execute(data).get();
+            Toast.makeText(getApplicationContext(), "Thanks for responding!", Toast.LENGTH_SHORT).show();
         } catch(InterruptedException|ExecutionException|JSONException e) {
             e.printStackTrace();
+            Toast.makeText(getApplicationContext(), "Error uploading data!", Toast.LENGTH_SHORT).show();
         }
-        Toast.makeText(getApplicationContext(), "I/O failed, fuck you!", Toast.LENGTH_LONG);
     }
 
     private String getPrefs(String key) {
@@ -189,6 +202,12 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        wifiErrorLayout = (FrameLayout) findViewById(R.id.wifiErrorLayout);
+
+        downloadMetrics();
+    }
+
+    private void downloadMetrics() {
         DownloadTask task = new DownloadTask();
         try {
             task.execute(getPrefs("username"), getPrefs("password")).get();
@@ -197,6 +216,9 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
+    public void retryDownload(View view) {
+        downloadMetrics();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
