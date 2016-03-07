@@ -18,8 +18,6 @@ import android.preference.RingtonePreference;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-
-
 import java.util.List;
 
 /**
@@ -151,7 +149,13 @@ public class SettingsActivity extends PreferenceActivity {
                 preference.setSummary(stringValue);
             } else {
                 // Other preferences - just set the summary to the value's simple string representation.
-                preference.setSummary(stringValue);
+                if (preference.toString().equals("Password")) {
+                    String starredPassword = stringValue.replaceAll("[a-zA-Z]", "*");
+                    preference.setSummary(starredPassword);
+                } else {
+                    preference.setSummary(stringValue);
+                }
+
             }
             return true;
         }
