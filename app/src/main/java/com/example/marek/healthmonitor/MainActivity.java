@@ -18,6 +18,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.GridLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.apache.http.HttpResponse;
@@ -33,6 +35,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -40,6 +43,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.concurrent.ExecutionException;
@@ -47,9 +51,14 @@ import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends ActionBarActivity {
     ArrayList<JSONObject> metrics = new ArrayList<JSONObject>();
-    FrameLayout wifiErrorLayout;
+    FrameLayout errorLayout;
+    GridLayout buttonsLayout;
+    TextView errorText;
+    TextView bodyPartText;
     int metricIndex = 0;
     int userId = -1;
+
+    private class UnauthorizedException extends Exception {}
 
     public class UploadTask extends AsyncTask<JSONObject, Void, String> {
 
@@ -78,17 +87,31 @@ public class MainActivity extends ActionBarActivity {
                 HttpClient client = new DefaultHttpClient();
                 HttpResponse response = client.execute(post);
                 Log.i("PostData - Response", response.getStatusLine().toString());
-            } catch (JSONException|IOException ex) {
+                if(response.getStatusLine().getStatusCode() == 200)
+                    return null;
+                else if (response.getStatusLine().getStatusCode() == 403)
+                    throw new UnauthorizedException();
+            } catch (JSONException|IOException|UnauthorizedException ex) {
                 this.exception = ex;
             }
-
             return null;
         }
 
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            if (this.exception != null) Log.e("PostData", this.exception.getMessage());
+            if (this.exception == null) {
+                Toast.makeText(getApplicationContext(), "Thanks for responding!", Toast.LENGTH_SHORT).show();
+                metricIndex ++;
+                showNextMetric();
+            } else {
+                Log.e("PostData", this.exception.getMessage());
+                if (this.exception.getClass().equals(UnauthorizedException.class)) {
+                    Toast.makeText(getApplicationContext(), "Unauthorized - Please check your username and password settings!", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Error uploading data!", Toast.LENGTH_LONG).show();
+                }
+            }
         }
     }
 
@@ -102,6 +125,7 @@ public class MainActivity extends ActionBarActivity {
             String result = "";
             URL url;
             HttpURLConnection connection = null;
+            int response_code = -1;
 
             try {
                 Uri.Builder builder = new Uri.Builder();
@@ -113,6 +137,7 @@ public class MainActivity extends ActionBarActivity {
                 url = new URL(builder.build().toString());
 
                 connection = (HttpURLConnection) url.openConnection();
+                response_code = connection.getResponseCode();
                 InputStream is = connection.getInputStream();
                 InputStreamReader reader = new InputStreamReader(is);
 
@@ -124,15 +149,26 @@ public class MainActivity extends ActionBarActivity {
                     data = reader.read();
                 }
 
-                Log.i("Download", "Result: '"+result+"'");
-            } catch (MalformedURLException ex) {
+                Log.i("Download", "Result: '" + result + "' ");
+            } catch (UnknownHostException ex) {
+                errorLayout.setVisibility(View.VISIBLE);
+                errorText.setText("Internet connection required :(");
+                this.exception = ex;
+                return null;
+            } catch (FileNotFoundException ex) {
+                errorLayout.setVisibility(View.VISIBLE);
+                if (response_code == 403)
+                    errorText.setText("Failed to log into server.\nPlease verify your username and password.");
+                else
+                    errorText.setText("Weird error: server responded with " + response_code);
+
                 this.exception = ex;
                 return null;
             } catch (IOException ex) {
-                wifiErrorLayout.setVisibility(View.VISIBLE);
                 this.exception = ex;
                 return null;
             }
+
             return result;
         }
 
@@ -145,13 +181,14 @@ public class MainActivity extends ActionBarActivity {
             } else {
                 try {
                     Log.i("Download SUCCESS:", result);
-                    wifiErrorLayout.setVisibility(View.INVISIBLE);
+                    errorLayout.setVisibility(View.INVISIBLE);
                     JSONObject jObject = new JSONObject(result);
                     userId = jObject.getInt("user");
                     JSONArray array = jObject.getJSONArray("metrics");
                     for (int i = 0; i < array.length(); i++) {
                         metrics.add(array.getJSONObject(i));
                     }
+                    showNextMetric();
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -159,8 +196,13 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    private String getCurrentMetricName() throws JSONException {
-        return metrics.get(metricIndex).getString("name");
+    private String getCurrentMetricName() {
+        try {
+            return metrics.get(metricIndex).getString("name");
+        } catch (JSONException ex) {
+            ex.printStackTrace();
+            return null;
+        }
     }
 
     public void postData(View view) {
@@ -181,10 +223,8 @@ public class MainActivity extends ActionBarActivity {
             data.put("values", valuesData);
 
             task.execute(data).get();
-            Toast.makeText(getApplicationContext(), "Thanks for responding!", Toast.LENGTH_SHORT).show();
         } catch(InterruptedException|ExecutionException|JSONException e) {
             e.printStackTrace();
-            Toast.makeText(getApplicationContext(), "Error uploading data!", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -192,17 +232,15 @@ public class MainActivity extends ActionBarActivity {
         return PreferenceManager.getDefaultSharedPreferences(this).getString(key, "");
     }
 
-    public void launchSettings (View view) {
-        Intent i = new Intent(getApplicationContext(), SettingsActivity.class);
-        startActivity(i);
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        wifiErrorLayout = (FrameLayout) findViewById(R.id.wifiErrorLayout);
+        errorLayout = (FrameLayout) findViewById(R.id.errorLayout);
+        buttonsLayout = (GridLayout) findViewById(R.id.buttonsLayout);
+        errorText = (TextView) findViewById(R.id.errorText);
+        bodyPartText = (TextView) findViewById(R.id.bodyPartText);
 
         downloadMetrics();
     }
@@ -214,6 +252,18 @@ public class MainActivity extends ActionBarActivity {
         } catch(InterruptedException|ExecutionException e) {
             e.printStackTrace();
         }
+    }
+
+    private void showNextMetric() {
+        if (metricIndex >= metrics.size()) {
+            Toast.makeText(this, "That's all, thanks!", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        buttonsLayout.setVisibility(View.VISIBLE);
+        buttonsLayout.bringToFront();
+
+        bodyPartText.setText(getCurrentMetricName());
     }
 
     public void retryDownload(View view) {
@@ -234,8 +284,13 @@ public class MainActivity extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
+        // TODO sprawdzić jak to działa
+
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.settings) {
+            Intent i = new Intent(getApplicationContext(), SettingsActivity.class);
+            startActivity(i);
+
             return true;
         }
 
