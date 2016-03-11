@@ -26,8 +26,10 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<JSONObject> metrics = new ArrayList<JSONObject>();
     FrameLayout errorLayout;
     GridLayout buttonsLayout;
+    RelativeLayout welcomeLayout;
     TextView errorText;
     TextView bodyPartText;
+    Button startButton;
     int metricIndex = 0;
     int userId = -1;
 
@@ -42,19 +44,16 @@ public class MainActivity extends AppCompatActivity {
 
     private void downloadMetrics() {
         DownloadTask task = new DownloadTask(this);
-        try {
-            task.execute(getPrefs("username"), getPrefs("password")).get();
-        } catch(InterruptedException|ExecutionException e) {
-            e.printStackTrace();
-        }
+        task.execute(getPrefs("username"), getPrefs("password"));
     }
 
-    public void showNextMetric() {
+    public void showNextMetric(View view) {
         if (metricIndex >= metrics.size()) {
             Toast.makeText(this, "That's all, thanks!", Toast.LENGTH_LONG).show();
             return;
         }
 
+        startButton.setVisibility(View.GONE);
         buttonsLayout.setVisibility(View.VISIBLE);
         buttonsLayout.bringToFront();
 
@@ -88,8 +87,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private String getPrefs(String key) {
-        return PreferenceManager.getDefaultSharedPreferences(this).getString(key, "");
+    public void metricsReady() {
+        startButton.setVisibility(View.VISIBLE);
+        findViewById(R.id.spinner).setVisibility(View.GONE);
     }
 
     @Override
@@ -99,9 +99,12 @@ public class MainActivity extends AppCompatActivity {
 
         errorLayout = (FrameLayout) findViewById(R.id.errorLayout);
         buttonsLayout = (GridLayout) findViewById(R.id.buttonsLayout);
+        welcomeLayout = (RelativeLayout) findViewById(R.id.welcomeLayout);
         errorText = (TextView) findViewById(R.id.errorText);
         bodyPartText = (TextView) findViewById(R.id.bodyPartText);
+        startButton = (Button) findViewById(R.id.startButton);
 
+        welcomeLayout.bringToFront();
         downloadMetrics();
     }
 

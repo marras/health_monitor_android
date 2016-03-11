@@ -67,7 +67,7 @@ public class UploadTask extends AsyncTask<JSONObject, Void, String> {
         if (this.exception == null) {
             Toast.makeText(main.getApplicationContext(), "Thanks for responding!", Toast.LENGTH_SHORT).show();
             main.metricIndex++;
-            main.showNextMetric();
+            main.showNextMetric(null);
         } else {
             Log.e("PostData", this.exception.getMessage());
             if (this.exception.getClass().equals(UnauthorizedException.class)) {
