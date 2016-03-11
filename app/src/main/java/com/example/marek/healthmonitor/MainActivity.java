@@ -90,6 +90,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void retryDownload(View view) {
+        errorLayout.setVisibility(View.INVISIBLE);
+        welcomeLayout.setVisibility(View.VISIBLE);
+
         downloadMetrics();
     }
 
@@ -164,11 +167,16 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void showError(String text) {
-        errorLayout.setVisibility(View.VISIBLE);
-        welcomeLayout.setVisibility(View.INVISIBLE);
-        buttonsLayout.setVisibility(View.INVISIBLE);
-        errorText.setText(text);
+    public void showError(final String text) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                errorLayout.setVisibility(View.VISIBLE);
+                welcomeLayout.setVisibility(View.INVISIBLE);
+                buttonsLayout.setVisibility(View.INVISIBLE);
+                errorText.setText(text);
+            }
+        });
     }
 
     private String getPrefs(String key) {
