@@ -2,15 +2,16 @@ package com.example.marek.healthmonitor;
 
 import android.content.Intent;
 import android.preference.PreferenceManager;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.GridLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -129,5 +130,16 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void showError(String text) {
+        errorLayout.setVisibility(View.VISIBLE);
+        welcomeLayout.setVisibility(View.INVISIBLE);
+        buttonsLayout.setVisibility(View.INVISIBLE);
+        errorText.setText(text);
+    }
+
+    private String getPrefs(String key) {
+        return PreferenceManager.getDefaultSharedPreferences(this).getString(key, "");
     }
 }

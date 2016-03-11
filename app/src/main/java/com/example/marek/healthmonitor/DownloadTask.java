@@ -61,16 +61,14 @@ public class DownloadTask extends AsyncTask<String, Void, String> {
 
             Log.i("Download", "Result: '" + result + "' ");
         } catch (UnknownHostException ex) {
-            main.errorLayout.setVisibility(View.VISIBLE);
-            main.errorText.setText("Internet connection required :(");
+            main.showError("Internet connection required :(");
             this.exception = ex;
             return null;
         } catch (FileNotFoundException ex) {
-            main.errorLayout.setVisibility(View.VISIBLE);
             if (response_code == 403)
-                main.errorText.setText("Failed to log into server.\nPlease verify your username and password.");
+                main.showError("Failed to log into server.\nPlease verify your username and password.");
             else
-                main.errorText.setText("Weird error: server responded with " + response_code);
+                main.showError("Weird error: server responded with " + response_code);
 
             this.exception = ex;
             return null;
@@ -98,7 +96,7 @@ public class DownloadTask extends AsyncTask<String, Void, String> {
                 for (int i = 0; i < array.length(); i++) {
                     main.metrics.add(array.getJSONObject(i));
                 }
-                main.showNextMetric();
+                main.metricsReady();
             } catch (JSONException e) {
                 e.printStackTrace();
             }
