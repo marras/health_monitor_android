@@ -66,7 +66,7 @@ public class Waker extends BroadcastReceiver {
         if(alarm.getTimeInMillis() <= now.getTimeInMillis())
             _alarm = alarm.getTimeInMillis() + (AlarmManager.INTERVAL_DAY+1);
         else
-            _alarm = alarm.getTimeInMillis();  ///// TODO test this!
+            _alarm = alarm.getTimeInMillis();
 
         am.setInexactRepeating(AlarmManager.RTC_WAKEUP, _alarm, AlarmManager.INTERVAL_DAY, pi);
         Log.i("Waker", "Alarm set.");

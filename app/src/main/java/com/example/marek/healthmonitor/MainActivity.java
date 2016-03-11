@@ -1,5 +1,7 @@
 package com.example.marek.healthmonitor;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Intent;
 import android.preference.PreferenceManager;
 import android.os.Bundle;
@@ -20,6 +22,9 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -49,7 +54,19 @@ public class MainActivity extends AppCompatActivity {
 
     public void showNextMetric(View view) {
         if (metricIndex >= metrics.size()) {
-            Toast.makeText(this, "That's all, thanks!", Toast.LENGTH_LONG).show();
+            buttonsLayout.animate().translationX(-500f).setDuration(300);
+            welcomeLayout.setVisibility(View.VISIBLE);
+            ((TextView) findViewById(R.id.HelloMessage)).setText("That's all, thanks!");
+
+            Runnable endTask = new Runnable() {
+                public void run() {
+                    finishAffinity();
+                }
+            };
+
+            ScheduledExecutorService worker = Executors.newSingleThreadScheduledExecutor(); //delay
+            worker.schedule(endTask, 3, TimeUnit.SECONDS);
+
             return;
         }
 
@@ -57,7 +74,19 @@ public class MainActivity extends AppCompatActivity {
         buttonsLayout.setVisibility(View.VISIBLE);
         buttonsLayout.bringToFront();
 
-        bodyPartText.setText(getCurrentMetricName());
+        if (metricIndex != 0) {
+            buttonsLayout.animate()
+                    .translationX(-500f).setDuration(300)
+                    .withEndAction(new Runnable() {
+                        @Override
+                        public void run() {
+                            bodyPartText.setText(getCurrentMetricName());
+                            buttonsLayout.setX(500f);
+                            buttonsLayout.animate()
+                                    .translationX(0f).setDuration(200);
+                        }
+                    });
+        }
     }
 
     public void retryDownload(View view) {
