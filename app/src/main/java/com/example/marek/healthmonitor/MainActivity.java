@@ -7,12 +7,18 @@ import android.preference.PreferenceManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.GridLayout;
+import android.widget.GridView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,12 +35,14 @@ import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
     ArrayList<JSONObject> metrics = new ArrayList<JSONObject>();
+
     FrameLayout errorLayout;
-    GridLayout buttonsLayout;
+    LinearLayout metricsLayout;
     RelativeLayout welcomeLayout;
     TextView errorText;
     TextView bodyPartText;
-    Button startButton;
+    GridLayout buttonsLayout;
+    Button startButton, previousButton;
     int metricIndex = 0;
     int userId = -1;
 
@@ -52,9 +60,19 @@ public class MainActivity extends AppCompatActivity {
         task.execute(getPrefs("username"), getPrefs("password"));
     }
 
-    public void showNextMetric(View view) {
+    public void showPreviousMetric(View view) {
+        metricIndex--;
+        showNextMetric(-1);
+        if (metricIndex == 0) previousButton.setVisibility(View.INVISIBLE);
+    }
+
+    public void start(View view) {
+        showNextMetric(1);
+    }
+
+    public void showNextMetric(final int dir) {
         if (metricIndex >= metrics.size()) {
-            buttonsLayout.animate().translationX(-500f).setDuration(300);
+            metricsLayout.animate().translationX(-500f * dir).setDuration(300);
             welcomeLayout.setVisibility(View.VISIBLE);
             ((TextView) findViewById(R.id.HelloMessage)).setText("That's all, thanks!");
 
@@ -71,22 +89,63 @@ public class MainActivity extends AppCompatActivity {
         }
 
         startButton.setVisibility(View.GONE);
-        buttonsLayout.setVisibility(View.VISIBLE);
-        buttonsLayout.bringToFront();
+        metricsLayout.setVisibility(View.VISIBLE);
+        metricsLayout.bringToFront();
 
-        if (metricIndex != 0) {
-            buttonsLayout.animate()
-                    .translationX(-500f).setDuration(300)
+        try {
+            final int max = metrics.get(metricIndex).getInt("max");
+
+            metricsLayout.animate()
+                    .translationX(-500f * dir).setDuration(300)
                     .withEndAction(new Runnable() {
                         @Override
                         public void run() {
-                            bodyPartText.setText(getCurrentMetricName());
-                            buttonsLayout.setX(500f);
-                            buttonsLayout.animate()
+                            regenerateMetricsView(getCurrentMetricName(), max);
+
+                            metricsLayout.setX(500f * dir);
+                            metricsLayout.animate()
                                     .translationX(0f).setDuration(200);
+                            if (metricIndex > 0) previousButton.setVisibility(View.VISIBLE);
                         }
                     });
+        }  catch (JSONException e) {
+                e.printStackTrace();
         }
+    }
+
+    private void regenerateMetricsView(String name, int max) {
+        final int COLS = 4;
+        int rows = max / COLS + 1;
+
+        buttonsLayout.setColumnCount(COLS);
+        buttonsLayout.setRowCount(rows);
+
+        for (int num = 1; num <= max; num ++) {
+            int r = (num - 1) / COLS;
+            int c = (num - 1) % COLS;
+
+            Button button = new Button(this);
+            GridLayout.LayoutParams param = new GridLayout.LayoutParams();
+            param.height = GridLayout.LayoutParams.WRAP_CONTENT;
+            param.width = GridLayout.LayoutParams.WRAP_CONTENT;
+            param.rightMargin = 2;
+            param.topMargin = 2;
+            param.setGravity(Gravity.CENTER);
+            param.columnSpec = GridLayout.spec(c);
+            param.rowSpec = GridLayout.spec(r);
+            button.setLayoutParams(param);
+            button.setText(Integer.toString(num));
+            button.setTag(num);
+            button.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    postData(v);
+                }
+            });
+            buttonsLayout.addView(button);
+        }
+
+        Log.i("Regeneration", Integer.toString(max));
+        bodyPartText.setText(name);
     }
 
     public void retryDownload(View view) {
@@ -130,11 +189,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         errorLayout = (FrameLayout) findViewById(R.id.errorLayout);
-        buttonsLayout = (GridLayout) findViewById(R.id.buttonsLayout);
+        metricsLayout = (LinearLayout) findViewById(R.id.metricsLayout);
         welcomeLayout = (RelativeLayout) findViewById(R.id.welcomeLayout);
         errorText = (TextView) findViewById(R.id.errorText);
         bodyPartText = (TextView) findViewById(R.id.bodyPartText);
         startButton = (Button) findViewById(R.id.startButton);
+        previousButton = (Button) findViewById(R.id.previousButton);
+
+        buttonsLayout = (GridLayout) findViewById(R.id.buttonsLayout);
 
         welcomeLayout.bringToFront();
         downloadMetrics();
@@ -173,7 +235,7 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 errorLayout.setVisibility(View.VISIBLE);
                 welcomeLayout.setVisibility(View.INVISIBLE);
-                buttonsLayout.setVisibility(View.INVISIBLE);
+                metricsLayout.setVisibility(View.INVISIBLE);
                 errorText.setText(text);
             }
         });
