@@ -140,6 +140,7 @@ public class SettingsActivity extends PreferenceActivity {
                                 : null);
             } else if (preference instanceof TimePreference) {
                 // Time has been changed - set the alarm
+                if (stringValue == "") stringValue = "20:20"; // HACK ugly :/
                 String[] time = stringValue.split(":");
                 int hour = Integer.parseInt(time[0]);
                 int minute = Integer.parseInt(time[1]);
