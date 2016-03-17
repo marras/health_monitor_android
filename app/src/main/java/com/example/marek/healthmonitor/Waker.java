@@ -57,6 +57,8 @@ public class Waker extends BroadcastReceiver {
         PendingIntent pi = PendingIntent.getBroadcast(context, 0, i, 0);
 
         Calendar now = Calendar.getInstance();
+        now.setTimeInMillis(System.currentTimeMillis());
+
         Calendar alarm = Calendar.getInstance();
         alarm.setTimeInMillis(System.currentTimeMillis());
         alarm.set(Calendar.HOUR_OF_DAY, hour);
@@ -64,12 +66,12 @@ public class Waker extends BroadcastReceiver {
 
         long _alarm = 0;
         if(alarm.getTimeInMillis() <= now.getTimeInMillis())
-            _alarm = alarm.getTimeInMillis() + (AlarmManager.INTERVAL_DAY+1);
+            _alarm = alarm.getTimeInMillis() + (AlarmManager.INTERVAL_DAY + 1);
         else
             _alarm = alarm.getTimeInMillis();
 
         am.setInexactRepeating(AlarmManager.RTC_WAKEUP, _alarm, AlarmManager.INTERVAL_DAY, pi);
-        Log.i("Waker", "Alarm set.");
+        Log.i("Waker","Alarm set to " + Long.toString(_alarm) + " (now: " + Long.toString(now.getTimeInMillis()) + ")");
     }
 
     public void CancelAlarm(Context context)
