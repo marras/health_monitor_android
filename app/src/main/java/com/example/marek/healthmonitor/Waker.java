@@ -40,14 +40,14 @@ public class Waker extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent)
     {
-     //   PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-     //   PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "");
-     //   wl.acquire();
+        PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "");
+        wl.acquire();
 
-        Log.w("Waker", "RECEIVED ALARM!");// Put here YOUR code.
+        Log.w("Waker", "RECEIVED ALARM!");
         createNotification(context);
 
-//        wl.release();
+        wl.release();
     }
 
     public void SetAlarm(Context context, int hour, int minute)
