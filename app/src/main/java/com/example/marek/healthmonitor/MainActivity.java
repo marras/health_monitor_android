@@ -117,6 +117,9 @@ public class MainActivity extends AppCompatActivity {
         final int COLS = 4;
         int rows = max / COLS + 1;
 
+        Log.i("Regeneration", Integer.toString(max) + ", rows: " + Integer.toString(rows));
+
+        buttonsLayout.removeAllViews();
         buttonsLayout.setColumnCount(COLS);
         buttonsLayout.setRowCount(rows);
 
@@ -144,7 +147,6 @@ public class MainActivity extends AppCompatActivity {
             buttonsLayout.addView(button);
         }
 
-        Log.i("Regeneration", Integer.toString(max));
         bodyPartText.setText(name);
     }
 
